@@ -1,0 +1,213 @@
+<!-- [15037735]:Preschool Shopping List Mobile App with jQuery -->
+<!doctype html>
+<html>
+<head>
+	<title>jQuery Shopping List App</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="orange-mobile-web-app-capable" content="yes" />
+
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+	<script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/cdn/spinbox/latest/jqm-spinbox.min.js"></script>
+
+  	<!-- (Start) Add jQuery UI Touch Punch -->
+  	<script src="jquery.ui.touch-punch.min.js"></script>
+  	<!-- (End) Add jQuery UI Touch Punch -->
+	
+	<style> 
+		
+	</style>
+	
+
+</head>
+<body>
+
+<script>
+	var chosenItems = {};
+
+	$( document ).ready(function() {
+		// you can only save strings to local storage
+		// so all js objects have to be saved in the form JSON.stringify()
+		// and retrieved in the format JSON.parse(obj)
+		
+		var q = localStorage.getItem("myShoppingList");
+		if (q!=null) chosenItems = JSON.parse(q);
+		
+		showHomelist();
+	});
+	
+	function showHomelist()
+	{
+		
+		//remove existing items from shopping list
+		 $("#homelistview").empty();
+		 
+		 //iterate through the dictionary chosenItems
+		 for (var itemname in chosenItems) {
+		 
+		  itemqty = chosenItems[itemname];
+		  
+		  //<a href='#' id='"+itemname+"' name='"+itemname+"_"+itemqty+"' onclick='openpopup(this.name);'>"+itemname+" ("+itemqty+")</a>
+		  $('<li>').append('<a href="#" id="'+itemname+'" name="'+itemname+'_'+itemqty+'" onclick="openpopup(this.name);">'+itemname+' ('+itemqty+')</a>').appendTo('#homelistview');
+		  
+		 }
+		//refresh the list
+		 $("#homelistview").listview('refresh');
+		
+		
+	}
+		
+	//////////////////////////////////////////////////////////////////////////
+	////////////////// NO RESULTS FOUND //////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
+	var lisize = $("#homelistview li").size();
+	var timer = null;
+	
+	$(document).on('keydown', '.ui-filterable', function(){
+		$('#notfound').remove();
+		   clearTimeout(timer); 
+		   timer = setTimeout(checklist, 500)
+	});
+
+	function checklist() {
+		var count = $('#homelistview li').size() - $('#homelistview li.ui-screen-hidden').size();
+		 
+		if(count<1)
+		{
+			//var additem   = $("<li id='notfound'>No Results Found. <a href='#popupItem' data-rel='popup' data-position-to='window' data-transition='pop'>Add New</a></li>");    
+			var additem   = $("<li><a href='#' id='notfound' name='notfound' onclick='openpopup(this.name);'>No Results Found. Add New?</a></li>"); 
+			additem.appendTo("#homelistview");
+		}
+		else { 
+			$('#notfound').remove();
+		}
+	}
+	//~~~~~~~~~~~~~~~~~~~~~~~~~   END   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+	
+	//////////////////////////////////////////////////////////////////////////
+	//////////// LOADING DATA IN POPUP ///////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
+		
+	function openpopup(details) {
+		
+		if (details == "notfound")
+		{
+			$("#itemname").val($("#myFilter").val());
+		}
+		else
+		{
+			var details = details.split('_');
+			var itemname = details[0];
+			var itemqty = details[1];
+			$("#itemname").val(itemname);
+			$("#itemqty").val(itemqty);
+		}
+		$( "#popupItem" ).popup( "open" );
+	}
+	//~~~~~~~~~~~~~~~~~~~~~~~~~   END   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+	
+	//////////////////////////////////////////////////////////////////////////
+	//////////// SAVE POPUP DETAILS //////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
+		
+	function additem() {
+		
+		if ($("#itemname").val() == "")
+		{
+			// Error Msg - Item Name cannot be empty
+		}
+		else
+		{
+			var itemname = $("#itemname").val();
+			var itemqty = $("#itemqty").val();
+			
+			// If itemname is = to any id in document, update the quantity
+			// If doesn't exist create new
+						
+			// save
+			chosenItems[itemname] = itemqty;
+			localStorage.setItem("myShoppingList",JSON.stringify(chosenItems));
+			
+			//rebuild the list
+			$("#myFilter").val("");
+			showHomelist();
+		}
+		$( "#popupItem" ).popup( "close" );
+		
+	}
+	//~~~~~~~~~~~~~~~~~~~~~~~~~   END   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
+</script>
+
+<!-- Start Edit Page -->
+<div data-role="page" id="home">
+	<div data-role="header">
+		<h1>Home Mode</h1>
+		<a href="#listpage" class="ui-btn ui-corner-all ui-shadow ui-icon-arrow-r ui-btn-icon-right">Shopping Mode</a>
+	</div>
+
+	<div data-role="main" class="ui-content">
+		<form class="ui-filterable">
+			<input id="myFilter" data-type="search">
+			<!--<input type="button" value="Open!" onclick="openpopup();">-->
+		</form>
+		
+		<ul data-role="listview" data-filter="true" data-input="#myFilter" data-autodividers="false" data-inset="true" data-divider-theme="a" id="homelistview">
+			<li></li>
+			
+		</ul>
+	</div>
+	
+	<!-- Start POPUP -->
+	<div data-role="popup" id="popupItem" data-theme="a" class="ui-corner-all">
+		<form>
+			<div style="padding:10px 20px;">
+				<h3>Item</h3>
+				<label for="itemname" class="ui-hidden-accessible">Item:</label>
+				<input type="text" name="itemname" id="itemname" value="" placeholder="Item" data-theme="a">
+				<label for="itemqty" class="ui-hidden-accessible">Qty:</label>
+				<input type="text" name="itemqty" id="itemqty" data-role="spinbox" value="0" min="0" max="10" data-theme="a">
+				<input type="button" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check" value="Save Item" onclick="additem();">
+			</div>
+		</form>
+	</div>
+	<!-- End POPUP -->
+
+	<div data-role="footer">
+		<h1>Edit Footer Text</h1>
+	</div>
+</div> 
+<!-- End Edit Page -->
+
+
+
+<!-- Start List Page -->
+<div data-role="page" id="listpage"> 
+	<div data-role="header">
+		<a href="#home" class="ui-btn ui-corner-all ui-shadow ui-icon-arrow-l ui-btn-icon-left">Go to Edit List</a>
+		<h1>Shopping List</h1>
+	</div>
+
+	<div data-role="main" class="ui-content">
+		<p>Page two content here</p>
+	</div>
+
+	<div data-role="footer">
+		<h1>Footer Text</h1>
+	</div>
+</div> 
+<!-- End List Page -->
+
+
+
+<script>
+
+
+
+
+
+</script>
+</body>
+</html>
