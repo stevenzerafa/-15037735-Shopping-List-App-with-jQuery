@@ -16,8 +16,9 @@
   	<script src="jquery.ui.touch-punch.min.js"></script>
   	<!-- (End) Add jQuery UI Touch Punch -->
 	
-	<style> 
-		
+	<style> 		
+		.shoppinglistitem {font-size:20px;}
+		.strike {font-style: italic; color:red; font-size:16px;}
 	</style>
 	
 
@@ -36,6 +37,7 @@
 		if (q!=null) chosenItems = JSON.parse(q);
 		
 		showHomelist();
+		showShoppinglist();
 	});
 	
 	function showHomelist()
@@ -55,6 +57,32 @@
 		 }
 		//refresh the list
 		 $("#homelistview").listview('refresh');
+		
+		
+	}
+	
+	function showShoppinglist()
+	{
+		
+		//remove existing items from shopping list
+		 $("#shoppinglistview").empty();
+		 
+		 //iterate through the dictionary chosenItems
+		 for (var itemname in chosenItems) {
+		 
+		  itemqty = chosenItems[itemname];
+		  
+		  if (itemqty == 0)
+		  {
+			continue;
+		  }
+		  
+		  //<a href='#' id='"+itemname+"' name='"+itemname+"_"+itemqty+"' onclick='openpopup(this.name);'>"+itemname+" ("+itemqty+")</a>
+		  $('<li>').append('<a href="#" class="shoppinglistitem" id="'+itemname+'" name="'+itemname+'_'+itemqty+'" onclick="strikeitem(this.name);">'+itemname+' ('+itemqty+')</a>').appendTo('#shoppinglistview');
+		  
+		 }
+		//refresh the list
+		 $("#shoppinglistview").listview('refresh');
 		
 		
 	}
@@ -133,10 +161,48 @@
 			//rebuild the list
 			$("#myFilter").val("");
 			showHomelist();
+			showShoppinglist();
 		}
 		$( "#popupItem" ).popup( "close" );
 		
 	}
+	//~~~~~~~~~~~~~~~~~~~~~~~~~   END   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+	
+	//////////////////////////////////////////////////////////////////////////
+	//////////// STRIKE ITEM  ////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
+		
+	
+		
+	$(document).on('click', '.shoppinglistitem', function() {
+            
+		$(this).removeClass('shoppinglistitem');
+		$(this).addClass('strike');
+		$(this).wrap("<strike>");
+		
+		$(this).slider({
+  orientation: "vertical"
+});
+		
+        });
+		
+	$(document).on('click', '.strike', function() {
+        if ($(this).parent().is("strike"))
+		{
+			$(this).unwrap();
+			$(this).removeClass('strike');
+			$(this).addClass('shoppinglistitem');
+		}
+		
+		
+        });
+		
+	$('.strike').on('slide', function() {
+        // set the qty to 0
+		// refresh the list
+		
+		
+        });
 	//~~~~~~~~~~~~~~~~~~~~~~~~~   END   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 </script>
@@ -191,7 +257,10 @@
 	</div>
 
 	<div data-role="main" class="ui-content">
-		<p>Page two content here</p>
+		<ul data-role="listview" data-filter="true" data-input="#myFilter" data-autodividers="false" data-inset="false" data-divider-theme="a" id="shoppinglistview">
+			<li></li>
+			
+		</ul>
 	</div>
 
 	<div data-role="footer">
