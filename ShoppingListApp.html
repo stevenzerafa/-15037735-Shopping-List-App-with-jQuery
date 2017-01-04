@@ -78,7 +78,7 @@
 		  }
 		  
 		  //<a href='#' id='"+itemname+"' name='"+itemname+"_"+itemqty+"' onclick='openpopup(this.name);'>"+itemname+" ("+itemqty+")</a>
-		  $('<li>').append('<a href="#" class="shoppinglistitem" id="'+itemname+'" name="'+itemname+'_'+itemqty+'" onclick="strikeitem(this.name);">'+itemname+' ('+itemqty+')</a>').appendTo('#shoppinglistview');
+		  $('<li>').append('<a href="#" class="shoppinglistitem" id="'+itemname+'" name="'+itemname+'_'+itemqty+'">'+itemname+' ('+itemqty+')</a>').appendTo('#shoppinglistview');
 		  
 		 }
 		//refresh the list
@@ -175,34 +175,36 @@
 	
 		
 	$(document).on('click', '.shoppinglistitem', function() {
-            
+        
+		// Change the class to strike and wrap the strike tag
 		$(this).removeClass('shoppinglistitem');
 		$(this).addClass('strike');
 		$(this).wrap("<strike>");
 		
-		$(this).slider({
-  orientation: "vertical"
-});
-		
-        });
+	});
 		
 	$(document).on('click', '.strike', function() {
-        if ($(this).parent().is("strike"))
+        
+		// make sure that the class is strike  
+		if ($(this).parent().is("strike"))
 		{
+			// unwrap the strike tag and reverse the class back
 			$(this).unwrap();
 			$(this).removeClass('strike');
 			$(this).addClass('shoppinglistitem');
 		}
 		
+	});
 		
-        });
+	 $(document).on( 'swiperight', '.strike', function( event ) {
+
+         // ...the list item will be removed
+        $(this).remove();
+        //refresh the list
+		$('#shoppinglistview').listview('refresh').find('.ui-li-static').removeClass('ui-li-static ui-body-inherit');
+    });
 		
-	$('.strike').on('slide', function() {
-        // set the qty to 0
-		// refresh the list
-		
-		
-        });
+
 	//~~~~~~~~~~~~~~~~~~~~~~~~~   END   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 </script>
