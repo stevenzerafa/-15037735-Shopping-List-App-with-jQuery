@@ -20,7 +20,6 @@
 		.shoppinglistitem {font-size:20px;}
 		.strike {font-style: italic; color:red; font-size:16px;}
 	</style>
-	
 
 </head>
 <body>
@@ -28,46 +27,41 @@
 <script>
 	var chosenItems = {};
 
-	$( document ).ready(function() {
-		// you can only save strings to local storage
-		// so all js objects have to be saved in the form JSON.stringify()
-		// and retrieved in the format JSON.parse(obj)
+	$(document).ready(function() {
+		// get all existing info and display it
 		
-		var q = localStorage.getItem("myShoppingList");
+		var q = localStorage.getItem("myShoppingList1");
 		if (q!=null) chosenItems = JSON.parse(q);
 		
 		showHomelist();
 		showShoppinglist();
 	});
 	
+	
 	function showHomelist()
 	{
-		
 		//remove existing items from shopping list
 		 $("#homelistview").empty();
 		 
-		 //iterate through the dictionary chosenItems
+		 //iterate through the dictionary chosenItems and build the listitems
 		 for (var itemname in chosenItems) {
-		 
-		  itemqty = chosenItems[itemname];
-		  
-		  //<a href='#' id='"+itemname+"' name='"+itemname+"_"+itemqty+"' onclick='openpopup(this.name);'>"+itemname+" ("+itemqty+")</a>
-		  $('<li>').append('<a href="#" id="'+itemname+'" name="'+itemname+'_'+itemqty+'" onclick="openpopup(this.name);">'+itemname+' ('+itemqty+')</a>').appendTo('#homelistview');
-		  
+			
+			  itemqty = chosenItems[itemname];
+
+			  $('<li>').append('<a href="#" id="'+itemname+'" name="'+itemname+'_'+itemqty+'" onclick="openpopup(this.name);">'+itemname+' ('+itemqty+')</a>').appendTo('#homelistview');
+			  
 		 }
 		//refresh the list
-		 $("#homelistview").listview('refresh');
-		
-		
+		 $("#homelistview").listview().listview('refresh');
+
 	}
 	
 	function showShoppinglist()
 	{
-		
 		//remove existing items from shopping list
 		 $("#shoppinglistview").empty();
 		 
-		 //iterate through the dictionary chosenItems
+		 //iterate through the dictionary chosenItems and build the listitems
 		 for (var itemname in chosenItems) {
 		 
 		  itemqty = chosenItems[itemname];
@@ -76,14 +70,12 @@
 		  {
 			continue;
 		  }
-		  
-		  //<a href='#' id='"+itemname+"' name='"+itemname+"_"+itemqty+"' onclick='openpopup(this.name);'>"+itemname+" ("+itemqty+")</a>
+
 		  $('<li>').append('<a href="#" class="shoppinglistitem" id="'+itemname+'" name="'+itemname+'_'+itemqty+'">'+itemname+' ('+itemqty+')</a>').appendTo('#shoppinglistview');
 		  
 		 }
 		//refresh the list
-		 $("#shoppinglistview").listview('refresh');
-		
+		$("#shoppinglistview").listview().listview('refresh');
 		
 	}
 		
@@ -101,14 +93,15 @@
 
 	function checklist() {
 		var count = $('#homelistview li').size() - $('#homelistview li.ui-screen-hidden').size();
-		 
+		
+		// if no items found build an li with link to add new popup		
 		if(count<1)
-		{
-			//var additem   = $("<li id='notfound'>No Results Found. <a href='#popupItem' data-rel='popup' data-position-to='window' data-transition='pop'>Add New</a></li>");    
-			var additem   = $("<li><a href='#' id='notfound' name='notfound' onclick='openpopup(this.name);'>No Results Found. Add New?</a></li>"); 
+		{  
+			var additem   = $("<li><a href='#' id='notfound' name='notfound' onclick='openpopup(this.name);'>No Items Found. Add New?</a></li>"); 
 			additem.appendTo("#homelistview");
 		}
 		else { 
+			// remove this li
 			$('#notfound').remove();
 		}
 	}
@@ -145,35 +138,32 @@
 		if ($("#itemname").val() == "")
 		{
 			// Error Msg - Item Name cannot be empty
+			$("#itemname").attr("placeholder", "Input item name!");
 		}
 		else
 		{
 			var itemname = $("#itemname").val();
 			var itemqty = $("#itemqty").val();
 			
-			// If itemname is = to any id in document, update the quantity
-			// If doesn't exist create new
-						
 			// save
 			chosenItems[itemname] = itemqty;
-			localStorage.setItem("myShoppingList",JSON.stringify(chosenItems));
+			localStorage.setItem("myShoppingList1",JSON.stringify(chosenItems));
 			
 			//rebuild the list
 			$("#myFilter").val("");
 			showHomelist();
 			showShoppinglist();
+			$( "#popupItem" ).popup( "close" );
 		}
-		$( "#popupItem" ).popup( "close" );
+		
 		
 	}
 	//~~~~~~~~~~~~~~~~~~~~~~~~~   END   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 	
 	//////////////////////////////////////////////////////////////////////////
-	//////////// STRIKE ITEM  ////////////////////////////////////////////////
+	//////////// STRIKE / UNSTRIKE ITEM  /////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
-		
-	
-		
+
 	$(document).on('click', '.shoppinglistitem', function() {
         
 		// Change the class to strike and wrap the strike tag
@@ -195,13 +185,25 @@
 		}
 		
 	});
+	//~~~~~~~~~~~~~~~~~~~~~~~~~   END   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+	
+	//////////////////////////////////////////////////////////////////////////
+	//////////// ZEROISE BOUGHT ITEM  ////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
 		
 	 $(document).on( 'swiperight', '.strike', function( event ) {
 
-         // ...the list item will be removed
+		var itemName = $(this).attr('id');
+		// Update item qty to 0
+		chosenItems[itemName] = 0;
+		localStorage.setItem("myShoppingList1",JSON.stringify(chosenItems));
+			
+        // remove the list item
         $(this).remove();
         //refresh the list
 		$('#shoppinglistview').listview('refresh').find('.ui-li-static').removeClass('ui-li-static ui-body-inherit');
+		//rebuild the home list again
+		showHomelist();
     });
 		
 
@@ -210,19 +212,18 @@
 </script>
 
 <!-- Start Edit Page -->
-<div data-role="page" id="home">
+<div data-role="page" id="homepage">
 	<div data-role="header">
-		<h1>Home Mode</h1>
-		<a href="#listpage" class="ui-btn ui-corner-all ui-shadow ui-icon-arrow-r ui-btn-icon-right">Shopping Mode</a>
+		<h1>Home</h1>
+		<a href="#listpage" data-icon="bars" data-mini="true" data-inline="true" data-theme="b" class="ui-btn-right">List</a>
 	</div>
 
 	<div data-role="main" class="ui-content">
 		<form class="ui-filterable">
-			<input id="myFilter" data-type="search">
-			<!--<input type="button" value="Open!" onclick="openpopup();">-->
+			<input id="myFilter" data-type="search" placeholder="Search / Enter New Item">
 		</form>
 		
-		<ul data-role="listview" data-filter="true" data-input="#myFilter" data-autodividers="false" data-inset="true" data-divider-theme="a" id="homelistview">
+		<ul data-role="listview" data-filter="true" data-icon="plus" data-input="#myFilter" data-autodividers="false" data-inset="true" data-divider-theme="a" id="homelistview">
 			<li></li>
 			
 		</ul>
@@ -236,16 +237,13 @@
 				<label for="itemname" class="ui-hidden-accessible">Item:</label>
 				<input type="text" name="itemname" id="itemname" value="" placeholder="Item" data-theme="a">
 				<label for="itemqty" class="ui-hidden-accessible">Qty:</label>
-				<input type="text" name="itemqty" id="itemqty" data-role="spinbox" value="0" min="0" max="10" data-theme="a">
+				<input type="number" name="itemqty" id="itemqty" data-role="spinbox" value="0" min="0" max="100" data-theme="a">
 				<input type="button" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check" value="Save Item" onclick="additem();">
 			</div>
 		</form>
 	</div>
 	<!-- End POPUP -->
 
-	<div data-role="footer">
-		<h1>Edit Footer Text</h1>
-	</div>
 </div> 
 <!-- End Edit Page -->
 
@@ -254,7 +252,7 @@
 <!-- Start List Page -->
 <div data-role="page" id="listpage"> 
 	<div data-role="header">
-		<a href="#home" class="ui-btn ui-corner-all ui-shadow ui-icon-arrow-l ui-btn-icon-left">Go to Edit List</a>
+		<a href="#homepage" data-icon="home" data-mini="true" data-inline="true" data-theme="b">Home</a>
 		<h1>Shopping List</h1>
 	</div>
 
@@ -265,20 +263,9 @@
 		</ul>
 	</div>
 
-	<div data-role="footer">
-		<h1>Footer Text</h1>
-	</div>
 </div> 
 <!-- End List Page -->
 
 
-
-<script>
-
-
-
-
-
-</script>
 </body>
 </html>
